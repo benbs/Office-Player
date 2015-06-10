@@ -45,9 +45,11 @@ function onPlayerReady(event) {
   })
   socket.on("pause", function () {
     player.pauseVideo();
+    emitState();
   });
   socket.on("play", function () {
     player.playVideo();
+    emitState();
   });
   socket.on("changeVolume", function(vol) {
     player.setVolume(vol);
@@ -87,7 +89,8 @@ function emitState(timeout) {
     socket.emit("playerState", {
       volume: player.getVolume(),
       isMuted: player.isMuted(),
-      time: player.getCurrentTime()
+      time: player.getCurrentTime(),
+      isPaused: (player.getPlayerState() == 2)
     })
   }, to)
 

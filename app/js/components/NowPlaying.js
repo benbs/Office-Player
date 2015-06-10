@@ -12,13 +12,15 @@ var NowPlaying = React.createClass({
   loadState: function() {
     var nowPlaying = PlaylistStore.getPlaylist()[PlaylistStore.nowPlaying()];
     var playerState = PlayerStore.getPlayerState();
-    return {
+    var state = {
       nowPlaying: nowPlaying,
       playerState: PlaylistStore.getPlayerState(),
       volume: playerState.volume,
       isMuted: playerState.isMuted,
-      time: playerState.time
-    }
+      isPaused: playerState.isPaused
+    };
+    playerState.time && (state["time"] = playerState.time);
+    return state
   },
   getInitialState: function() {
     return this.loadState();
@@ -63,19 +65,40 @@ var NowPlaying = React.createClass({
     }
   },
 
+  emptyState: function() {
+    return (
+      <div id="now-playing">
+        <div className="song-thumbnail">
+          <img src="http://images.clipartpanda.com/musical-notes-png-Music-notes-clipart-1.png" />
+        </div>
+        <div id="song-info">
+          <h3 dir="auto">&nbsp;</h3>
+          <div id="player-buttons">
+            <button className="btn btn-danger">
+              <i className="fa fa-step-backward" />
+            </button>
+            <button className="btn btn-danger">
+              <i className="fa fa-play" />
+            </button>
+            <button className="btn btn-danger"><i className="fa fa-step-forward" /></button>
+            <VolumeController
+              mute={false}
+              volume={100} />
+            <SongTime
+              duration={0}
+              time={0}
+              isPaused={true} />
+          </div>
+        </div>
+      </div>
+    );
+  },
+
   render: function() {
     var song = this.state.nowPlaying;
     if (!song) {
-      return (
-        <div id="now-playing"><i class="fa fa-refresh fa-spin" /></div>
-      );
+      return this.emptyState();
     }
-    //var time = (new Date(this.state.time));
-    //var formatedTime = time.getMinutes()+":"+time.getSeconds();
-    //if (time.getHours() > 0) {
-    //  formatedTime = time.getHours()+":"+formatedTime;
-    //}
-    console.log(song);
     return (
       <div id="now-playing">
         <div className="song-thumbnail">
@@ -87,7 +110,7 @@ var NowPlaying = React.createClass({
             <button className="btn btn-danger" onClick={this.prevSong}>
               <i className="fa fa-step-backward" />
             </button>
-            {(this.state.playerState == "pause")?
+            {(this.state.isPaused)?
             <button className="btn btn-danger" onClick={PlaylistActions.play}>
               <i className="fa fa-play" />
             </button> :
@@ -101,8 +124,10 @@ var NowPlaying = React.createClass({
               onMute={this.mute}
               onUnMute={this.unMute}
               volume={this.state.volume} />
-            <SongTime duration={this.getDurationInSeconds(song.contentDetails.duration)}
-              time={this.state.time}/>
+            <SongTime
+              duration={this.getDurationInSeconds(song.contentDetails.duration)}
+              time={this.state.time}
+              isPaused={this.state.isPaused} />
           </div>
         </div>
       </div>

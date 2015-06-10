@@ -12,7 +12,7 @@ var api = {
     this.io = io;
     this.playlist = playlist;
   },
-  addSong: function(yId, callback) {
+  addSong: function(yId, callback, currentSong) {
     var io = this.io;
     var playlist = this.playlist;
     if (yId && yId.length == 11 && !playlist.find(function(song){return song.id == yId})) {
@@ -31,10 +31,10 @@ var api = {
             relatedToVideoId: yId,
             maxResults: 10
           }, (function(err, relatedResp) {
-            if (!err && relatedResp.items.length) {
+            if (!err && relatedResp.items.length && (!currentSong || currentSong == this.playlist.currentSong)) {
               song.set({relatedSongs: relatedResp.items});
               playlist.add(song);
-              playlist.length == 1 && io.to("players").emit("nowPlaying", song);
+              playlist.length == 1 && io.to("players").emit("nowPlaying", this.nowPlaying());
               io.to("clients").emit('loadSong', this.getSong(yId));
               io.to("clients").emit('nowPlaying', this.nowPlaying());
               console.log("added song");
@@ -71,6 +71,7 @@ var api = {
   clearPlaylist: function() {
     this.playlist.reset();
     this.io.to("clients").emit("getPlaylist", this.getPlaylist());
+    this.io.to("players").emit("nowPlaying", "");
   },
   getPlaylist: function (data) {
     if (data) {
@@ -114,6 +115,10 @@ var api = {
   },
   playerState: function(state) {
     this.io.to("clients").emit("playerState", state);
+    if (this.playlist.length && this.playlist.currentSong + 1 == this.playlist.length) {
+      var related = this.playlist.pickSongFromRelated();
+      this.addSong(related, null, this.playlist.currentSong);
+    }
   },
   requestState: function() {
     this.io.to("players").emit("requestState");
@@ -139,7 +144,7 @@ var api = {
   },
   seek: function(time) {
     this.io.to("players").emit("seek", time);
-  },
+  }
 };
 
 module.exports = api;

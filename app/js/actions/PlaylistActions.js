@@ -79,7 +79,6 @@ var PlaylistActions = {
       playlist: playlist
     });
   },
-
   setNowPlaying: function(songId) {
     Dispatcher.dispatch({
       actionType: vars.EVENTS.NowPlaying,
