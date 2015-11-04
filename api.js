@@ -42,6 +42,10 @@ var api = {
             }
           }).bind(this))
         }
+        else {
+          console.log('Error!');
+          console.error(err)
+        }
       }).bind(this))
     }
     else {
