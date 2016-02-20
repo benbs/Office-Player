@@ -20,6 +20,7 @@ var api = {
         id: yId,
         part: "snippet,contentDetails",
         type: "video",
+        type: "video",
         auth: this.key
       }, (function (err, response) {
         if (!err && response.items.length) {
