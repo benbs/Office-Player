@@ -22,3 +22,12 @@ export function removeEventListener(node, event, listener) {
     node.detachEvent(`on${event}`, listener);
   }
 }
+
+export function objectToQuerystring(obj) {
+  var str = [];
+  for(var p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+}

@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Rename `app.js` to `client.js` (aka client-side code)
 - Integrate [CSS Modules](https://github.com/css-modules/css-modules) and
   [isomorphic-style-loader](https://github.com/kriasoft/isomorphic-style-loader)
-- Move `DOMUtils.js` to `src/core` folder; remove `src/utils` folder
+- Move `Utils.js` to `src/core` folder; remove `src/utils` folder
 - Replace [cssnext](http://cssnext.io/) with [precss](https://github.com/jonathantneal/precss)
 - Update build automation scripts to use plain functions
 - Add support of `--release` and `--verbose` flags to build scripts

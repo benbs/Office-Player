@@ -10,13 +10,15 @@
 /* eslint-disable max-len */
 /* jscs:disable maximumLineLength */
 
-export const port = process.env.PORT || 5000;
+export const port = process.env.PORT || 8889;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
-export const analytics = {
+export const showEmitterEventLogs = true;
+export const showDispatchLogs = true;
 
+export const analytics = {
   // https://analytics.google.com/
-  google: { trackingId: process.env.GOOGLE_TRACKING_ID || 'UA-XXXXX-X' },
+  google: { trackingId: process.env.GOOGLE_TRACKING_ID || 'UA-XXXXX-X' }
 
 };
 
@@ -25,19 +27,11 @@ export const auth = {
   // https://developers.facebook.com/
   facebook: {
     id: process.env.FACEBOOK_ID || '183246425378777',
-    secret: process.env.FACEBOOK_SECRET || 'cb2b201f0249d15454221cbf00d6ff99',
+    secret: process.env.FACEBOOK_SECRET || 'cb2b201f0249d15454221cbf00d6ff99'
   },
 
-  // https://cloud.google.com/console/project
-  google: {
-    id: process.env.GOOGLE_CLIENT_ID || '251410730550-ahcg0ou5mgfhl8hlui1urru7jn5s12km.apps.googleusercontent.com',
-    secret: process.env.GOOGLE_CLIENT_SECRET || 'Y8yR9yZAhm9jQ8FKAL8QIEcd',
-  },
-
-  // https://apps.twitter.com/
-  twitter: {
-    key: process.env.TWITTER_CONSUMER_KEY || 'Ie20AZvLJI2lQD5Dsgxgjauns',
-    secret: process.env.TWITTER_CONSUMER_SECRET || 'KTZ6cxoKnEakQCeSpZlaUCJWGAlTEBJj0y2EMkUBujA7zWSvaQ',
-  },
+  youtube: {
+    key: 'AIzaSyDpf1zpnEIu2otoq_jERitTBXn-O3yJ9bg'
+  }
 
 };

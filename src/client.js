@@ -12,7 +12,7 @@ import ReactDOM from 'react-dom';
 import FastClick from 'fastclick';
 import Router from './routes';
 import Location from './core/Location';
-import { addEventListener, removeEventListener } from './core/DOMUtils';
+import { addEventListener, removeEventListener } from './core/Utils';
 
 let cssContainer = document.getElementById('css');
 const appContainer = document.getElementById('app');

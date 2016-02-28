@@ -85,6 +85,7 @@ async function start() {
           bs.init({
             proxy: {
               target: host,
+              ws: true,
               middleware: [wpMiddleware, ...hotMiddlewares],
             },
 
