@@ -134,7 +134,9 @@ class PlayerAPI {
   }
 
   async playerState(played) {
-    this.player.playerState = this.player.playerState.set('played', played);
+    if (played) {
+      this.player.playerState = this.player.playerState.set('played', played);
+    }
     this.io.emit("playerState", this.player.playerState.toJS());
     if (this.player.songList.count() && this.player.currentSongIdx + 1 == this.player.songList.count()) {
       let related = this.player.pickSongFromRelated();

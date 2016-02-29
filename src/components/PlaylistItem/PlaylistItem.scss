@@ -1,0 +1,22 @@
+.root {
+  height: 30px;
+  line-height: 30px;
+  cursor: default;
+}
+
+.selected {
+  background-color: darkgrey;
+}
+
+.nowPlaying {
+  font-weight: bold;
+}
+
+.dragHandle {
+  display: inline;
+  margin: 0 10px;
+  i {
+    margin-left: 1px;
+    cursor: move;
+  }
+}

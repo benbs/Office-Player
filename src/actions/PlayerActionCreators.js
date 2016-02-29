@@ -68,8 +68,8 @@ export function changeVolume(vol) {
   Socket.emit("changeVolume", vol);
 }
 
-export function requestPlayerState() {
-  Socket.emit("requestState");
+export function getPlayerState() {
+  Socket.emit("playerState");
 }
 
 export function seek(time) {

@@ -13,7 +13,7 @@ import s from './App.scss';
 
 import PlayerStore from '../../stores/PlayerStore';
 import Socket from '../../api/Socket';
-import {getPlaylist, nowPlaying} from '../../actions/PlayerActionCreators';
+import {getPlaylist, nowPlaying, getPlayerState} from '../../actions/PlayerActionCreators';
 
 import Header from '../Header';
 import NowPlaying from '../NowPlaying';
@@ -78,6 +78,7 @@ class App extends Component {
     require('../../actions/SocketActionCreators');
     getPlaylist(true);
     nowPlaying();
+    getPlayerState();
   }
 
   componentWillUnmount() {

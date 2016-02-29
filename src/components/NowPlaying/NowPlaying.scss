@@ -1,0 +1,54 @@
+.root {
+  width: 100%;
+  min-height: 75px;
+  background-color: grey;
+}
+
+.content {
+  width: 100%;
+  max-width: 1000px;
+  display: block;
+  position: relative;
+  margin: 0 auto;
+}
+
+.player {
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.songInfo {
+  display: inline-block;
+  position: relative;
+  width: 40%;
+  line-height: 75px;
+
+  img {
+    width: 75px;
+    display: inline-block;
+
+  }
+
+  h2 {
+    position: absolute;
+    top: 0;
+    left: 75px;
+    right: 0;
+    padding: 0 5px;
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.playerButtons {
+  display: inline-block;
+  width: 26%;
+  text-align: center;
+  line-height: 75px;
+}
+
+.playerButton {
+  font-size: 28px;
+  cursor: pointer;
+  padding: 5px;
+}
