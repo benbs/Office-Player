@@ -9,7 +9,7 @@ let songData = new LRU(1000);
 
 class Player {
   songList = new List();
-  currentSongIdx = 0;
+  currentSong = null;
   playerState = fromJS({
     playing: false,
     played: 0.0,
@@ -25,31 +25,37 @@ class Player {
   }
 
   nowPlaying() {
-    return this.songList.get(this.currentSongIdx);
+    return this.currentSong;
+  }
+
+  getCurrentSongIndex() {
+    return this.songList.findIndex(songId => songId === this.currentSong);
   }
 
   nextSong() {
-    this.currentSongIdx++;
+    let nextSongIndex = this.getCurrentSongIndex() + 1;
+    if (nextSongIndex != this.songList.count()) {
+      this.currentSong = this.songList.get(nextSongIndex);
+    }
   }
 
   prevSong() {
-    this.currentSongIdx--;
-    if (this.currentSongIdx == -1) {
-      this.currentSongIdx = this.length;
+    let prevSongIndex = this.getCurrentSongIndex() - 1;
+    if (prevSongIndex != -1) {
+      this.currentSong = this.songList.get(prevSongIndex);
     }
   }
 
   selectSong(songId) {
-    let next = this.songList.findIndex(song => song === songId);
-    if (next) {
-      this.currentSongIdx = next;
+    let nexSongIndex = this.songList.findIndex(song => song === songId);
+    if (nexSongIndex !== null) {
+      this.currentSong = this.songList.get(nexSongIndex);
       return true;
     }
     return false;
   }
 
   filterRelatedSongs(relatedSongList) {
-    console.log(relatedSongList);
     let blacklist = fromJS(["live", "cover", "interview", "full album", "best of", "greatest hits"]);
     return relatedSongList.filter(song => {
       return !blacklist.some(term => song.getIn(['snippet', 'title']).toLowerCase().indexOf(term) > -1)

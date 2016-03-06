@@ -57,3 +57,24 @@ Socket.on('setMaster', function() {
     type: ActionTypes.SET_MASTER
   })
 });
+
+Socket.on('hasMaster', function(hasMaster) {
+  Dispatcher.dispatch({
+    type: ActionTypes.SET_HAS_MASTER,
+    hasMaster
+  })
+});
+
+Socket.on('changeVolume', function(volume) {
+  Dispatcher.dispatch({
+    type: ActionTypes.CHANGE_VOLUME,
+    volume
+  })
+});
+
+Socket.on('seek', function(played) {
+  Dispatcher.dispatch({
+    type: ActionTypes.SEEK,
+    played
+  })
+})

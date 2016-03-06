@@ -4,11 +4,13 @@
 import React, {Component} from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
 import cx from 'classnames';
+import {throttle, debounce} from 'lodash';
 import Player from 'react-player';
 
 import s from './NowPlaying.scss';
 
-import {play, pause, nextSong, prevSong, setMaster, reportPlayerState} from '../../actions/PlayerActionCreators';
+import {play, pause, nextSong, prevSong, setMaster, reportPlayerState, changeVolume, seek, togglePlayer}
+  from '../../actions/PlayerActionCreators';
 import PlayerStore from '../../stores/PlayerStore';
 
 class NowPlaying extends Component {
@@ -16,20 +18,31 @@ class NowPlaying extends Component {
     super(props);
 
     this.state = {
-      visible: true,
-      played: 0.0
+      volume: this.props.playerState.get('volume'),
+      played: this.props.playerState.get('played')
     };
   }
 
   componentDidMount() {
-    this.refs.player.seekTo(this.props.playerState.get('played'));
+    if (this.props.player) {
+      this.refs.player.seekTo(this.props.playerState.get('played'));
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!this.props.player || this.props.isMaster) {
+      this.setState({
+        volume: nextProps.playerState.get('volume'),
+        played: nextProps.playerState.get('played')
+      });
+    }
   }
 
   componentDidUpdate() {
     let played = this.props.playerState.get('played');
     let deltaPlayed = Math.abs(played - this.state.played);
-    if (deltaPlayed > 0.03) {
-      //this.refs.player.seekTo(played);
+    if (deltaPlayed > 0.1) {
+      this.refs.player.seekTo(played);
     }
   }
 
@@ -40,11 +53,12 @@ class NowPlaying extends Component {
   }
 
   handleProgress(e) {
+    let deltaTime = Math.abs(this.state.played - e.played);
     this.setState({
       played: e.played
     });
     if (this.props.isMaster) {
-      reportPlayerState(e.played);
+      this.t_reportPlayerState();
     }
   }
 
@@ -58,29 +72,48 @@ class NowPlaying extends Component {
     //this.refs.player.seekTo(this.props.playerState.get('played'));
   }
 
-  togglePlayer() {
-    this.setState({visible: !this.state.visible});
+  changeVolume(e) {
+    let vol = e.target.value;
+    this.setState({volume: vol});
+    if (!this.props.player || this.props.isMaster) {
+      this.d_changeVolume(vol)
+    }
   }
+
+  seek(e) {
+    let played = e.target.value;
+    this.setState({played});
+    if (!this.props.player || this.props.isMaster) {
+      this.d_seek(played);
+    }
+  }
+
+  d_changeVolume = debounce((vol) => {
+    changeVolume(vol);
+  }, 500);
+
+  d_seek = debounce((played) => {
+    seek(played);
+  }, 500);
+
+  t_reportPlayerState = throttle(() => {
+    reportPlayerState(this.state.played);
+  }, 3000);
 
   render() {
 
     let playerState = this.props.playerState;
     let song = PlayerStore.getSong(PlayerStore.nowPlaying());
+    let displayMasterBtn = !this.props.hasMaster || this.props.isMaster;
 
     return (
       <div className={s.root}>
         <div className={s.content}>
-          {(!this.props.isMaster) ?
-            <div>
-              <button onClick={this.togglePlayer.bind(this)}>Toggle Player</button>
-              <button onClick={setMaster}>Set as Master</button>
-            </div>: 'You are a master!'
-          }
-            {(this.props.isMaster || this.state.visible) ?
+            {(this.props.isMaster || this.props.player) ?
               <Player ref="player"
                       url={`https://www.youtube.com/watch?v=${this.props.song}`}
                       playing={playerState.get('playing')}
-                      volume={this.props.isMaster ? playerState.get('volume') : 0}
+                      volume={this.state.volume}
                       onEnded={this.handleEnd.bind(this)}
                       onProgress={this.handleProgress.bind(this)}
                   className={s.player} /> : ''
@@ -94,15 +127,43 @@ class NowPlaying extends Component {
               : '' }
           </div>
           <div className={s.playerButtons}>
-            <span className={s.playerButton} onClick={this.handlePrevSong.bind(this)}><i className="fa fa-step-backward" /></span>
+            <span className={s.playerButton} onClick={this.handlePrevSong.bind(this)}>
+              <i className="fa fa-step-backward" />
+            </span>
             {(!playerState.get('playing')) ?
-              <span className={s.playerButton} onClick={play}><i className="fa fa-play" /></span> :
-              <span className={s.playerButton} onClick={pause}><i className="fa fa-pause" /></span>
+              <span className={s.playerButton} onClick={play}>
+                <i className="fa fa-play" />
+              </span> :
+              <span className={s.playerButton} onClick={pause}>
+                <i className="fa fa-pause" />
+              </span>
             }
-            <span className={s.playerButton} onClick={this.handleNextSong.bind(this)}><i className="fa fa-step-forward" /></span>
-            <input
-              type='range' min={0} max={1} step='any'
-            />
+            <span className={s.playerButton} onClick={this.handleNextSong.bind(this)}>
+              <i className="fa fa-step-forward" />
+            </span>
+            <span className={cx(s.playerButton, s.volumeButton)}>
+              <i className="fa fa-volume-up" />
+              <div className={s.volumeSlider}>
+                <input type='range' min={0} max={1}
+                       value={this.state.volume} step='any'
+                       onChange={this.changeVolume.bind(this)} />
+              </div>
+            </span>
+            {(!this.props.isMaster) ?
+              <span className={s.playerButton} onClick={togglePlayer}>
+                <i className="fa fa-television" />
+              </span>: ''}
+
+            {(displayMasterBtn) ?
+              <span className={cx(s.playerButton, {[s.masterButtonEnabled]: this.props.isMaster})}
+                    onClick={setMaster}>
+              <i className="fa fa-microphone" />
+            </span> : ''}
+            <div className={s.progressBar}>
+              <input type='range' min={0} max={1} onChange={this.seek.bind(this)}
+                     value={this.state.played} step='any'
+              />
+            </div>
           </div>
         </div>
       </div>

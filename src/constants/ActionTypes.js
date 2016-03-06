@@ -17,5 +17,9 @@ export default keyMirror({
   PAUSE: null,
   PLAYER_STATE: null,
   SELECT_SONG: null,
-  SET_MASTER: null
+  SET_MASTER: null,
+  SET_HAS_MASTER: null,
+  CHANGE_VOLUME: null,
+  SEEK: null,
+  TOGGLE_PLAYER: null
 });

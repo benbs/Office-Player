@@ -9,11 +9,13 @@
 
 import React, { Component, PropTypes } from 'react';
 import emptyFunction from 'fbjs/lib/emptyFunction';
+import cx from 'classnames';
+
 import s from './App.scss';
 
 import PlayerStore from '../../stores/PlayerStore';
 import Socket from '../../api/Socket';
-import {getPlaylist, nowPlaying, getPlayerState} from '../../actions/PlayerActionCreators';
+import {getPlaylist, nowPlaying, getPlayerState, hasMaster} from '../../actions/PlayerActionCreators';
 
 import Header from '../Header';
 import NowPlaying from '../NowPlaying';
@@ -26,7 +28,9 @@ function getStateFromStores() {
     playlist: PlayerStore.getPlaylist(true),
     nowPlaying: PlayerStore.nowPlaying(),
     isMaster: PlayerStore.isMaster(),
-    playerState: PlayerStore.getPlayerState()
+    hasMaster: PlayerStore.hasMaster(),
+    playerState: PlayerStore.getPlayerState(),
+    player: PlayerStore.isPlayer()
   }
 }
 class App extends Component {
@@ -79,6 +83,7 @@ class App extends Component {
     getPlaylist(true);
     nowPlaying();
     getPlayerState();
+    hasMaster();
   }
 
   componentWillUnmount() {
@@ -87,16 +92,26 @@ class App extends Component {
   }
 
   render() {
+    let nowPlaying = PlayerStore.getSong(this.state.nowPlaying);
+    let bgImage = nowPlaying && nowPlaying.getIn(['thumbnails', 'high', 'url']);
+    if (!bgImage) {
+      bgImage = 'http://www.mycity-web.com/wp-content/uploads/2015/09/music.jpg';
+    }
     return !this.props.error ? (
       <div>
-        <Header />
-        <NowPlaying song={this.state.nowPlaying}
-                    isMaster={this.state.isMaster}
-                    playerState={this.state.playerState} />
-        <Search />
-        <div className={s.mainContent}>
-          <Playlist playlist={this.state.playlist} />
-          <PlayerInfo song={this.state.nowPlaying} />
+        <div className={s.coverImage} style={{backgroundImage: `url(${bgImage})`}}></div>
+        <div className={s.playerWrapper}>
+          <Header />
+          <NowPlaying song={this.state.nowPlaying}
+                      isMaster={this.state.isMaster}
+                      hasMaster={this.state.hasMaster}
+                      player = {this.state.player}
+                      playerState={this.state.playerState} />
+          <div className={cx(s.mainContent, {[s.withPlayer]: this.state.player})}>
+            <Search />
+            <Playlist playlist={this.state.playlist} />
+            <PlayerInfo song={this.state.nowPlaying} />
+          </div>
         </div>
       </div>
     ) : <noscript />;

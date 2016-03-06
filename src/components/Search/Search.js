@@ -12,7 +12,7 @@ import {objectToQuerystring} from '../../core/Utils';
 
 import s from './Search.scss';
 
-import {addSong} from '../../actions/PlayerActionCreators';
+import {addSong, clearPlaylist} from '../../actions/PlayerActionCreators';
 
 import Autocomplete from 'react-autocomplete';
 
@@ -68,16 +68,19 @@ class Search extends Component {
     };
     return (
       <div className={s.root}>
-        <Autocomplete
-          ref="autocomplete"
-          items={this.state.results}
-          getItemValue={(item) => item.snippet.title}
-          onSelect={this.onSelect.bind(this)}
-          onChange={this.onChange.bind(this)}
-          menuStyle={menuStyle}
-          renderItem={this.renderItem.bind(this)}
-          inputProps={{className: s.searchBox, placeholder: 'Search on Youtube'}}
-        />
+        <span className={s.clearPlaylist} onClick={clearPlaylist}><i className="fa fa-trash" /></span>
+        <div className={s.searchWrapper}>
+          <Autocomplete
+            ref="autocomplete"
+            items={this.state.results}
+            getItemValue={(item) => item.snippet.title}
+            onSelect={this.onSelect.bind(this)}
+            onChange={this.onChange.bind(this)}
+            menuStyle={menuStyle}
+            renderItem={this.renderItem.bind(this)}
+            inputProps={{className: s.searchBox, placeholder: 'Search on Youtube'}}
+          />
+        </div>
       </div>
     );
   }

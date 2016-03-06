@@ -13,8 +13,9 @@
 export const port = process.env.PORT || 8889;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
-export const showEmitterEventLogs = true;
+export const showEmitterEventLogs = false;
 export const showDispatchLogs = true;
+export const showApiLogs = false;
 
 export const analytics = {
   // https://analytics.google.com/

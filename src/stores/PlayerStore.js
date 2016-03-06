@@ -22,6 +22,8 @@ let playlist = new List();
 let nowPlaying = null;
 let selectedSong = null;
 let isMaster = false;
+let hasMaster = false;
+let player = false;
 
 let debouncedGetPlaylist = _.debounce(getPlaylist, 1000);
 
@@ -74,7 +76,9 @@ class PlayerStore extends BaseStore {
   }
 
   getSong(songId) {
-    return getSongFromCache(songId);
+    if (songId) {
+      return getSongFromCache(songId);
+    }
   }
 
   nowPlaying() {
@@ -89,8 +93,16 @@ class PlayerStore extends BaseStore {
     return isMaster;
   }
 
+  hasMaster() {
+    return hasMaster;
+  }
+
   getPlayerState() {
     return playerState;
+  }
+
+  isPlayer() {
+    return player;
   }
 }
 
@@ -118,8 +130,24 @@ storeInstance.dispatchToken = Dispatcher.register(action => {
       isMaster = true;
       storeInstance.emitChange();
       break;
+    case ActionTypes.SET_HAS_MASTER:
+      hasMaster = action.hasMaster;
+      storeInstance.emitChange();
+      break;
     case ActionTypes.PLAYER_STATE:
       playerState = fromJS(action.state);
+      storeInstance.emitChange();
+      break;
+    case ActionTypes.CHANGE_VOLUME:
+      playerState = playerState.set('volume', action.volume);
+      storeInstance.emitChange();
+      break;
+    case ActionTypes.SEEK:
+      playerState = playerState.set('played', action.played);
+      storeInstance.emitChange();
+      break;
+    case ActionTypes.TOGGLE_PLAYER:
+      player = !player;
       storeInstance.emitChange();
       break;
     case ActionTypes.PLAY:

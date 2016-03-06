@@ -1,7 +1,8 @@
 .root {
   width: 100%;
   min-height: 75px;
-  background-color: grey;
+  background-color: rgba(255, 255, 255, .8);
+  box-shadow: 0 0 13px rgba(0,0,0,.59);
 }
 
 .content {
@@ -14,17 +15,20 @@
 
 .player {
   margin: 0 auto;
+  padding: 10px 0;
   pointer-events: none;
 }
 
 .songInfo {
   display: inline-block;
   position: relative;
-  width: 40%;
-  line-height: 75px;
+  width: 33%;
+  vertical-align: top;
+  margin: 10px;
+  //line-height: 75px;
 
   img {
-    width: 75px;
+    height: 59px;
     display: inline-block;
 
   }
@@ -32,7 +36,7 @@
   h2 {
     position: absolute;
     top: 0;
-    left: 75px;
+    left: 100px;
     right: 0;
     padding: 0 5px;
     margin: 0;
@@ -42,13 +46,45 @@
 
 .playerButtons {
   display: inline-block;
-  width: 26%;
+  width: 33%;
   text-align: center;
-  line-height: 75px;
+  //line-height: 75px;
+  padding: 5px;
 }
 
 .playerButton {
   font-size: 28px;
   cursor: pointer;
   padding: 5px;
+}
+
+.volumeButton {
+  position: relative;
+  .volumeSlider {
+    display: none;
+    position: absolute;
+    top: -35px;
+    left: 0;
+    background-color: rgba(0, 0, 0, .5);
+    padding: 5px 10px;
+
+    input {
+      width: 100px;
+    }
+  }
+
+  &:hover .volumeSlider {
+    display: block;
+  }
+}
+
+.masterButtonEnabled {
+  color: red;
+}
+
+.progressBar {
+  height: 2px;
+  display: inline;
+  width: 200px;
+  background-color: blueviolet;
 }

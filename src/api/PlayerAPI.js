@@ -14,7 +14,8 @@ function songSchema(song) {
   return new Map()
     .set('id', song.get('id'))
     .set('title', song.getIn(['snippet', 'title']))
-    .set('thumbnails', song.getIn(['snippet', 'thumbnails']));
+    .set('thumbnails', song.getIn(['snippet', 'thumbnails']))
+    .set('duration', song.getIn(['contentDetails', 'duration']));
 }
 
 function _getPlaylist(data) {
@@ -27,7 +28,7 @@ function _getPlaylist(data) {
   }
 }
 
-async function loadSong(songId, currentSong) {
+async function loadSong(songId, currentSongId) {
   if (!songId || songId.length != 11) {
     throw new Error(`Invalid song id '${songId}'`);
   }
@@ -47,7 +48,7 @@ async function loadSong(songId, currentSong) {
     Player.addSongToCache(songData);
   }
 
-  if (!currentSong || currentSong === Player.currentSongIdx) {
+  if (!currentSongId || currentSongId === Player.currentSong) {
     Player.songList = Player.songList.push(songId);
     return Player.getSongData(songId);
   }
@@ -58,6 +59,7 @@ class PlayerAPI {
   io = null;
   player = null;
   masterSocketId = null;
+  lastSeekTime = 0;
 
   constructor(io) {
     this.io = io;
@@ -84,10 +86,11 @@ class PlayerAPI {
     return this.player.nowPlaying();
   }
 
-  async addSong(songId, currentSong) {
-    let songData = await loadSong(songId, currentSong);
+  async addSong(songId, currentSongId) {
+    let songData = await loadSong(songId, currentSongId);
     if (this.player.songList.count() === 1) {
       this.player.playerState = this.player.playerState.set('playing', true);
+      this.player.currentSong = songId;
       this.io.emit('nowPlaying', this.player.nowPlaying());
       this.io.emit('playerState', this.player.playerState.toJS());
     }
@@ -115,33 +118,38 @@ class PlayerAPI {
     this.io.emit("nowPlaying", "");
   }
 
-  async nextSong(songId) {
-    if (songId === this.player.nowPlaying()) {
+  async nextSong(currentSongId) {
+    if (currentSongId === this.player.nowPlaying()) {
+      await this.seek(0);
       this.player.nextSong();
-      this.io.sockets.emit("nowPlaying", this.player.nowPlaying());
-      if (this.player.currentSongIdx +2 >= this.player.songList.count()) {
+      this.io.emit("nowPlaying", this.player.nowPlaying());
+      if (this.player.getCurrentSongIndex() +2 >= this.player.songList.count()) {
         let related = this.player.pickSongFromRelated();
         this.addSong(related);
       }
     }
   }
 
-  async prevSong(songId) {
-    if (songId == this.player.nowPlaying()) {
+  async prevSong(currentSongId) {
+    if (currentSongId == this.player.nowPlaying()) {
+      await this.seek(0);
       this.player.prevSong();
       this.io.sockets.emit("nowPlaying", this.player.nowPlaying())
     }
   }
 
   async playerState(played) {
-    if (played) {
-      this.player.playerState = this.player.playerState.set('played', played);
-    }
-    this.io.emit("playerState", this.player.playerState.toJS());
-    if (this.player.songList.count() && this.player.currentSongIdx + 1 == this.player.songList.count()) {
-      let related = this.player.pickSongFromRelated();
-      console.log(related);
-      this.addSong(related, this.player.currentSongIdx);
+    const now = (new Date()).getTime();
+    if (now - this.lastSeekTime > 3000) {
+      if (played) {
+        this.player.playerState = this.player.playerState.set('played', played);
+      }
+      this.io.emit("playerState", this.player.playerState.toJS());
+      const isLastSong = this.player.getCurrentSongIndex() + 1 == this.player.songList.count();
+      if (this.player.songList.count() && isLastSong) {
+        let related = this.player.pickSongFromRelated();
+        this.addSong(related, this.player.currentSong);
+      }
     }
   }
 
@@ -150,8 +158,8 @@ class PlayerAPI {
   }
 
   async selectSong(songId) {
-    this.player.currentSongIdx = this.player.songList.findIndex(id => id === songId);
-
+    await this.seek(0);
+    this.player.selectSong(songId);
     this.io.emit("nowPlaying", this.player.nowPlaying());
     this.player.playerState = this.player.playerState.set('playing', true);
   }
@@ -175,11 +183,14 @@ class PlayerAPI {
   }
 
   async changeVolume(vol) {
+    this.player.playerState = this.player.playerState.set('volume', vol);
     this.io.emit("changeVolume", vol);
   }
 
   async seek(time) {
-    this.io.emit("seek", time);
+    this.lastSeekTime = (new Date()).getTime();
+    this.player.playerState = this.player.playerState.set('played', time);
+    this.io.emit('playerState', this.player.playerState.toJS());
   }
 
   async reorderList(newList) {
@@ -187,6 +198,10 @@ class PlayerAPI {
       this.player.songList = fromJS(newList);
     }
     this.io.emit('getPlaylist', _getPlaylist());
+  }
+
+  async hasMaster() {
+    return Boolean(this.masterSocketId);
   }
 }
 

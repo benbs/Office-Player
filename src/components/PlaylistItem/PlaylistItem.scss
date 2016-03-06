@@ -2,10 +2,20 @@
   height: 30px;
   line-height: 30px;
   cursor: default;
+  overflow: hidden;
+}
+
+.songTitle {
+  padding: 0 5px;
+}
+
+.songDuration {
+  position: absolute;
+  right: 5px;
 }
 
 .selected {
-  background-color: darkgrey;
+  //background-color: darkgrey;
 }
 
 .nowPlaying {
@@ -16,7 +26,17 @@
   display: inline;
   margin: 0 10px;
   i {
-    margin-left: 1px;
-    cursor: move;
+    cursor: grab;
+    margin: 0;
   }
+}
+
+
+.songButton {
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+.dragged .dragHandle {
+  cursor: grabbing;
 }

@@ -6,6 +6,8 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles';
 
 import s from './Playlist.scss'
 
+import PlayerStore from '../../stores/PlayerStore';
+
 import DraggableList from 'react-draggable-list';
 import PlaylistItem from '../PlaylistItem';
 
@@ -28,6 +30,7 @@ class Playlist extends Component {
           template={PlaylistItem}
           list={this.props.playlist.toJS()}
           onMoveEnd={reorderList}
+          padding={0}
         />
       </div>
     );

@@ -84,6 +84,16 @@ export function setMaster() {
   Socket.emit('setMaster');
 }
 
+export function hasMaster() {
+  Socket.emit('hasMaster');
+}
+
 export function reportPlayerState(played) {
   Socket.emit('playerState', played);
+}
+
+export function togglePlayer() {
+  Dispatcher.dispatch({
+    type: ActionTypes.TOGGLE_PLAYER
+  })
 }

@@ -13,9 +13,44 @@
 
 @import '../variables.scss';
 
+:global {
+  html, body, #app, #app>div {
+    height: 100%;
+  }
+
+  #app>div {
+    background-size: cover;
+  }
+}
+
 .mainContent {
   text-align: center;
-  height: 700px;
+  height: 650px;
+  background-color: rgba(255, 255, 255, .8);
+  box-shadow: 0 0 13px rgba(0,0,0,.59);
+  max-width: 1000px;
+  margin: 10px auto;
+
+  &.withPlayer {
+    height: 100px;
+  }
+}
+
+.coverImage {
+  background-repeat: no-repeat;
+  background-size: 100%;
+  background-position-y: -100px;
+  filter: blur(10px);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.playerWrapper {
+  position: absolute;
+  width: 100%;
 }
 
 /*

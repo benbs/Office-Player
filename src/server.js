@@ -22,7 +22,7 @@ import Router from './routes';
 import Html from './components/Html';
 //noinspection JSFileReferences
 import assets from './assets';
-import { port } from './config';
+import { port, showApiLogs } from './config';
 
 import PlayerAPI from './api/PlayerAPI';
 
@@ -51,12 +51,11 @@ app.get('/api/:call', async (req, res) => {
       var args = api[name].toString().split(")")[0].split("(")[1];
       return name+": ("+args+")"
     });
-    console.log('funcs', funcs);
     funcs.unshift("<h1>Available Functions</h1>");
     res.end(funcs.join("<br />"))
   }
   else if (api[call]) {
-    console.log(`External api call - ${call}`);
+    showApiLogs && console.log(`External api call - ${call}`);
     var args = _.values(req.query);
     let response;
     try {
@@ -71,7 +70,6 @@ app.get('/api/:call', async (req, res) => {
       console.error(err.stack);
       response = {Error: err.message}
     }
-    console.log(response, typeof response);
     try {
       res.end(JSON.stringify(response))
     }
@@ -126,7 +124,7 @@ io.on('connection', function (socket) {
       catch(err) {
         console.error(err.stack);
       }
-      console.log(`API method ${call} with params ${args} returned ${response}`);
+      showApiLogs && console.log(`API method ${call} with params ${args} returned ${response}`);
       response && socket.emit(call, response)
     }
   });
@@ -135,11 +133,13 @@ io.on('connection', function (socket) {
       api.masterSocketId = socket.id;
       console.log('master player is ' + api.masterSocketId);
       socket.emit('setMaster', true);
+      io.emit('hasMaster', true);
     }
   });
   socket.on('disconnect', () => {
     if (api.masterSocketId === socket.id) {
       api.masterSocketId = null;
+      io.emit('hasMaster', false);
     }
   });
 });
