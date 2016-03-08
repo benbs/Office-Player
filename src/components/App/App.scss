@@ -30,9 +30,10 @@
   box-shadow: 0 0 13px rgba(0,0,0,.59);
   max-width: 1000px;
   margin: 10px auto;
+  overflow: auto;
 
   &.withPlayer {
-    height: 100px;
+    height: 275px;
   }
 }
 

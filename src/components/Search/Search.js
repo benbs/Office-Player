@@ -55,16 +55,16 @@ class Search extends Component {
     );
   }
   render() {
+    let bigWindow = this.props.isMaster || this.props.isPlayer;
     let menuStyle = {
       borderRadius: '3px',
       boxShadow: '0 2px 12px rgba(0, 0, 0, 0.1)',
       background: 'rgba(255, 255, 255, 0.9)',
       padding: '2px 0',
       fontSize: '90%',
-      position: 'fixed',
       zIndex: 3,
       overflow: 'auto',
-      maxHeight: '50%', // TODO: don't cheat, let it flow to the bottom
+      maxHeight: bigWindow ? '400px' : '200px'// TODO: don't cheat, let it flow to the bottom
     };
     return (
       <div className={s.root}>
