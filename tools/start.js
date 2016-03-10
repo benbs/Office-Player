@@ -78,7 +78,7 @@ async function start() {
       .filter(compiler => compiler.options.target !== 'node')
       .map(compiler => webpackHotMiddleware(compiler));
 
-    let handleServerBundleComplete = () => {
+    var handleServerBundleComplete = () => {
       runServer((err, host) => {
         if (!err) {
           const bs = Browsersync.create();
