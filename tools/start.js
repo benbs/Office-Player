@@ -88,6 +88,7 @@ async function start() {
               ws: true,
               middleware: [wpMiddleware, ...hotMiddlewares]
             },
+            open: false,
 
             // no need to watch '*.js' here, webpack will take care of it for us,
             // including full page reloads if HMR won't work

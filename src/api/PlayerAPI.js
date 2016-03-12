@@ -50,6 +50,9 @@ async function loadSong(songId, currentSongId) {
 
   if (!currentSongId || currentSongId === Player.currentSong) {
     Player.songList = Player.songList.push(songId);
+    if (Player.songList.size > 50) {
+      Player.songList = Player.songList.slice(-50);
+    }
     return Player.getSongData(songId);
   }
 }
@@ -73,14 +76,6 @@ class PlayerAPI {
   async getSong(songId) {
     return songSchema(this.player.getSongData(songId)).toJS();
   }
-
-  //async getSongs(songs) {
-  //  console.log(songs);
-  //  let immSongs = fromJS(songs);
-  //  return this.player.songList.filter(song => {
-  //    return songSchema(immSongs.some(requestedSongId => requestedSongId === song.get('id')));
-  //  }).toJS();
-  //}
 
   async nowPlaying() {
     return this.player.nowPlaying();

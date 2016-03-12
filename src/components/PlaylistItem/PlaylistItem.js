@@ -9,6 +9,58 @@ import s from './PlaylistItem.scss'
 
 import PlayerStore from '../../stores/PlayerStore';
 import {selectSong, changeSong, deleteSong} from '../../actions/PlayerActionCreators';
+import { findDOMNode } from 'react-dom';
+import { DragSource, DropTarget } from 'react-dnd';
+
+const cardSource = {
+  beginDrag(props) {
+    return {
+      id: props.id,
+      index: props.index
+    };
+  }
+};
+
+const cardTarget = {
+  hover(props, monitor, component) {
+    const dragIndex = monitor.getItem().index;
+    const hoverIndex = props.index;
+
+    // Don't replace items with themselves
+    if (dragIndex === hoverIndex)  {
+      return;
+    }
+    // Determine rectangle on screen
+    const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
+    // Get vertical middle
+    const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+    // Determine mouse position
+    const clientOffset = monitor.getClientOffset();
+    // Get pixels to the top
+    const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+    // Only perform the move when the mouse has crossed half of the items height
+    // When dragging downwards, only move when the cursor is below 50%
+    // When dragging upwards, only move when the cursor is above 50%
+    // Dragging downwards
+    if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+      return;
+    }
+
+    // Dragging upwards
+    if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+      return;
+    }
+
+    // Time to actually perform the action
+    props.moveCard(dragIndex, hoverIndex);
+
+    // Note: we're mutating the monitor item here!
+    // Generally it's better to avoid mutations,
+    // but it's good here for the sake of performance
+    // to avoid expensive index searches.
+    monitor.getItem().index = hoverIndex;
+  }
+};
 
 class PlaylistItem extends Component {
   constructor(props) {
@@ -27,38 +79,41 @@ class PlaylistItem extends Component {
     changeSong(this.props.item.id);
   }
 
-  renderDragHandle() {
-    let dragContent = (
-      <div className={s.dragHandle}>
-        <i className="fa fa-ellipsis-v" />
-        <i className="fa fa-ellipsis-v" />
-      </div>
-    );
-    return this.props.dragHandle(dragContent);
+  parseDuration(duration) {
+    let durationParts = duration.match(/(\d+)(?=[MHS])/ig) || [];
+
+    return durationParts.map(function (item) {
+      if (item.length < 2) {
+        return '0' + item;
+      }
+      return item;
+    }).join(':');
   }
 
   render() {
-    const {item, itemSelected} = this.props;
-    const dragged = itemSelected !== 0;
-    const selected = item.id === PlayerStore.getSelectedSongId();
-    const isPlaying = item.id === PlayerStore.nowPlaying();
+    const {item, isDragging, connectDragSource, connectDropTarget} = this.props;
+    const selected = item.get('id') === PlayerStore.getSelectedSongId();
+    const isPlaying = item.get('id') === PlayerStore.nowPlaying();
+    let duration = this.parseDuration(item.get('duration'));
 
-    let duration = item.duration
-      .replace("PT", "").replace("S", "").replace("H", ":").replace("M", ":").split(":");
-    duration.forEach(function(pt, i) { duration[i] = (pt.length == 1)? "0"+pt : pt });
-    duration = duration.join(":");
-
-    return (
-      <div className={cx(s.root, {dragged, [s.selected]: selected, [s.nowPlaying]: isPlaying})}
+    return connectDragSource(connectDropTarget(
+      <div className={cx(s.root, {dragged: isDragging, [s.selected]: selected, [s.nowPlaying]: isPlaying})}
            onClick={this.handleClick.bind(this)} onDoubleClick={this.handleDoubleClick.bind(this)}>
-        {this.renderDragHandle()}
-        <i className={cx("fa fa-play", s.songButton)} onClick={() => changeSong(item.id)} />
-        <i className={cx("fa fa-trash", s.songButton)} onClick={() => deleteSong(item.id)} />
-        <span className={s.songTitle}>{ item.title }</span>
+        <i className={cx("fa fa-play", s.songButton)} onClick={() => changeSong(item.get('id'))} />
+        <i className={cx("fa fa-trash", s.songButton)} onClick={() => deleteSong(item.get('id'))} />
+        <span className={s.songTitle}>{ item.get('title') }</span>
         <span className={s.songDuration}>{duration}</span>
       </div>
-    );
+    ));
   }
 }
 
-export default withStyles(PlaylistItem, s);
+
+export default withStyles(
+  DropTarget('card', cardTarget, connect => ({
+    connectDropTarget: connect.dropTarget()
+  }))(DragSource('card', cardSource, (connect, monitor) => ({
+    connectDragSource: connect.dragSource(),
+    isDragging: monitor.isDragging()
+  }))(PlaylistItem))
+  , s);

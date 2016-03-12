@@ -55,7 +55,7 @@ class Search extends Component {
     );
   }
   render() {
-    let bigWindow = this.props.isMaster || this.props.isPlayer;
+    let bigWindow = !this.props.isMaster || this.props.isPlayer;
     let menuStyle = {
       borderRadius: '3px',
       boxShadow: '0 2px 12px rgba(0, 0, 0, 0.1)',
@@ -63,6 +63,7 @@ class Search extends Component {
       padding: '2px 0',
       fontSize: '90%',
       zIndex: 3,
+      position: 'absolute',
       overflow: 'auto',
       maxHeight: bigWindow ? '400px' : '200px'// TODO: don't cheat, let it flow to the bottom
     };
