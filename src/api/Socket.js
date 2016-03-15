@@ -11,8 +11,10 @@ class Socket {
   }
 
   emit(event, data) {
+    let args = Array.slice(arguments);
+    args.shift();
     if (socket) {
-      socket.emit(event, data);
+      socket.emit(event, ...args);
     }
     else {
       console.error('socket is not ready yet');

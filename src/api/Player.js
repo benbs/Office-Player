@@ -4,6 +4,7 @@
 
 import {List, Map, fromJS} from 'immutable';
 import LRU from 'lru';
+import Song from '../models/Song';
 
 let songData = new LRU(1000);
 
@@ -17,7 +18,8 @@ class Player {
   });
 
   getSongData(songId) {
-    return fromJS(songData.get(songId));
+    let data = songData.get(songId);
+    return data ? new Song(fromJS(data)) : undefined;
   }
 
   addSongToCache(song) {

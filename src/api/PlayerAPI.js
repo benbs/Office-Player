@@ -3,58 +3,54 @@
  */
 
 import {List, Map, fromJS} from 'immutable';
+import {SongTypes, parseSong} from '../models/Song';
 
 import Player from './Player';
-import {getSong, getPlaylist, getRelatedSongs} from './YoutubeAPI';
-
-function songSchema(song) {
-  if (!song) {
-    return new Map();
-  }
-  return new Map()
-    .set('id', song.get('id'))
-    .set('title', song.getIn(['snippet', 'title']))
-    .set('thumbnails', song.getIn(['snippet', 'thumbnails']))
-    .set('duration', song.getIn(['contentDetails', 'duration']));
-}
+//import {getSong, getPlaylist, getRelatedSongs} from './YoutubeAPI';
+import * as Youtube from './YoutubeAPI';
+import * as Soundcloud from './SoundcloudAPI';
 
 function _getPlaylist(data) {
   if (data) {
     //return Player.songList.toJS();
-    return Player.songList.map(songId => songSchema(Player.getSongData(songId))).toJS();
+    return Player.songList.map(songId => Player.getSongData(songId).toSmallMap()).toJS();
   }
   else {
     return Player.songList.toJS();
   }
 }
 
-async function loadSong(songId, currentSongId) {
-  if (!songId || songId.length != 11) {
-    throw new Error(`Invalid song id '${songId}'`);
+async function getSongFromRemoteServices(songId, songType) {
+  switch (songType) {
+    case SongTypes.YOUTUBE_SONG:
+    case SongTypes.YOUTUBE_PLAYLIST:
+      return parseSong(await Youtube.getSong(songId));
+    case SongTypes.SOUNDCLOUD:
+      return parseSong(await Soundcloud.getSong(songId));
   }
+}
+
+async function loadSong(songId, songType, currentSongId) {
+  //if (!songId || songId.length != 11) {
+  //  throw new Error(`Invalid song id '${songId}'`);
+  //}
   if (Player.hasSong(songId)) {
     throw new Error('Song already exists');
   }
+  if (currentSongId && currentSongId !== Player.currentSong) {
+    throw new Error('supplied currentSong is invalid. probably sync issues');
+  }
+
   if (!Player.getSongData(songId)) {
-    let songData = await getSong(songId);
-    songData = songData.set('relatedSongs', new List());
-    try {
-      songData = songData.set('relatedSongs', await getRelatedSongs(songId));
-    }
-    catch (err) {
-      console.log(`couldnt get related songs - ${err}`);
-    }
-
-    Player.addSongToCache(songData);
+    let song = await getSongFromRemoteServices(songId, songType);
+    Player.addSongToCache(song);
   }
 
-  if (!currentSongId || currentSongId === Player.currentSong) {
-    Player.songList = Player.songList.push(songId);
-    if (Player.songList.size > 50) {
-      Player.songList = Player.songList.slice(-50);
-    }
-    return Player.getSongData(songId);
+  Player.songList = Player.songList.push(songId);
+  if (Player.songList.size > 50) {
+    Player.songList = Player.songList.slice(-50);
   }
+  return Player.getSongData(songId);
 }
 
 class PlayerAPI {
@@ -74,15 +70,15 @@ class PlayerAPI {
   }
 
   async getSong(songId) {
-    return songSchema(this.player.getSongData(songId)).toJS();
+    return this.player.getSongData(songId).toSmallMap().toJS();
   }
 
   async nowPlaying() {
     return this.player.nowPlaying();
   }
 
-  async addSong(songId, currentSongId) {
-    let songData = await loadSong(songId, currentSongId);
+  async addSong(songId, songType, currentSongId) {
+    let songData = await loadSong(songId, songType, currentSongId);
     if (this.player.songList.count() === 1) {
       this.player.playerState = this.player.playerState.set('playing', true);
       this.player.currentSong = songId;
@@ -90,7 +86,7 @@ class PlayerAPI {
       this.io.emit('playerState', this.player.playerState.toJS());
     }
     //this.io.to('clients').emit('loadSong', songData);
-    this.io.emit('addSong', songSchema(songData));
+    this.io.emit('addSong', songData.toSmallMap());
     this.io.emit('getPlaylist', _getPlaylist());
   }
 
@@ -120,7 +116,7 @@ class PlayerAPI {
       this.io.emit("nowPlaying", this.player.nowPlaying());
       if (this.player.getCurrentSongIndex() +2 >= this.player.songList.count()) {
         let related = this.player.pickSongFromRelated();
-        this.addSong(related);
+        this.addSong(related, SongTypes.YOUTUBE_SONG);
       }
     }
   }
@@ -143,7 +139,7 @@ class PlayerAPI {
       const isLastSong = this.player.getCurrentSongIndex() + 1 == this.player.songList.count();
       if (this.player.songList.count() && isLastSong) {
         let related = this.player.pickSongFromRelated();
-        this.addSong(related, this.player.currentSong);
+        this.addSong(related, SongTypes.YOUTUBE_SONG, this.player.currentSong);
       }
     }
   }

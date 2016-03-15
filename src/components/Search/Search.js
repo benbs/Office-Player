@@ -3,12 +3,16 @@
  */
 import React, {Component} from 'react';
 import withStyles from 'isomorphic-style-loader/lib/withStyles';
+import {canUseDOM} from 'fbjs/lib/ExecutionEnvironment';
 import cx from 'classnames';
 import _ from 'lodash';
+import {fromJS, List} from 'immutable';
 
 import fetch from '../../core/fetch';
 import {auth} from '../../config';
 import {objectToQuerystring} from '../../core/Utils';
+import {parseSong, SongTypes} from '../../models/Song';
+import * as Soundcloud from '../../api/SoundcloudAPI';
 
 import s from './Search.scss';
 
@@ -28,29 +32,78 @@ class Search extends Component {
   onSelect(value, item) {
     this.setState({results: []});
     this.refs.autocomplete.setState({value: ''});
-    addSong(item.id.videoId);
+    addSong(item.id, item.songType);
+  }
+  async getYoutubeResults(q) {
+    let baseURL = "https://www.googleapis.com/youtube/v3/";
+    let url = baseURL + 'search?' + objectToQuerystring({
+        part: 'snippet',
+        key: auth.youtube.key,
+        type: 'video,playlist',
+        maxResults: '10',
+        q: q
+      });
+    let response = await fetch(url);
+    response = await response.json();
+    let ids = response.items.map(item => item.id.videoId).join(',');
+    url = baseURL + 'videos?' + objectToQuerystring({
+        part: 'snippet,contentDetails',
+        id: ids,
+        key: auth.youtube.key,
+        type: 'video,playlist'
+      });
+    response = await fetch(url);
+    response = await response.json();
+    return fromJS(response.items).map(item => {
+      return parseSong(item.set('type', SongTypes.YOUTUBE_SONG));
+    });
+  }
+  async getSoundCloudResults(q) {
+    let response = await Soundcloud.findSongs(q);
+    return fromJS(response).map(item => {
+      return parseSong(item.set('type', SongTypes.SOUNDCLOUD));
+    })
+  }
+  multiplexResults(youtubeResults, soundcloudResults) {
+    let newList  = new List();
+    let ytItems = youtubeResults, scItems = soundcloudResults;
+    while (ytItems.size > 0 || scItems.size > 0) {
+      if (ytItems.size) {
+        newList = newList.push(ytItems.first());
+        ytItems = ytItems.shift();
+      }
+      if (scItems.size) {
+        newList = newList.push(scItems.first());
+        scItems = scItems.shift();
+      }
+    }
+    return newList;
   }
   onChange = _.debounce(async (e, value) => {
     this.setState({loading: true});
-    let baseURL = "https://www.googleapis.com/youtube/v3/search";
-    let requestArgs = {
-      part: 'snippet',
-      key: auth.youtube.key,
-      type: 'video,playlist',
-      maxResults: '10',
-      q: value
-    };
-    let url = baseURL + '?' + objectToQuerystring(requestArgs);
-    let response = await fetch(url);
-    let searchResults = await response.json();
-    this.setState({results: searchResults.items, loading: false});
+    let youtubeResults = await this.getYoutubeResults(value);
+    let scResults = await this.getSoundCloudResults(value);
+    this.setState({results: this.multiplexResults(youtubeResults, scResults).toJS(), loading: false});
   }, 500);
+
+  getSongTypeIcon(type) {
+    switch(type) {
+      case SongTypes.YOUTUBE_SONG:
+      case SongTypes.YOUTUBE_PLAYLIST:
+        return <i className="fa fa-youtube" />;
+      case SongTypes.SOUNDCLOUD:
+        return <i className="fa fa-soundcloud" />;
+    }
+  }
+
   renderItem(item, isHighlighted) {
     return (
       <div className={cx(s.item, {[s.highlightedItem]: isHighlighted})}
-           key={item.id.videoId} id={item.id.videoId}>
-        <img src={item.snippet.thumbnails.default.url} />
-        <span className={s.songTitle}>{item.snippet.title}</span>
+           key={item.id} id={item.id}>
+        <div className={s.thumbnailWrapper}><img src={item.thumbnails.default.url} /></div>
+        <span className={s.songTitle} dir="auto">
+          {this.getSongTypeIcon(item.songType)} [{item.duration}] {item.title}
+        </span>
       </div>
     );
   }
@@ -74,7 +127,7 @@ class Search extends Component {
           <Autocomplete
             ref="autocomplete"
             items={this.state.results}
-            getItemValue={(item) => item.snippet.title}
+            getItemValue={(item) => item.title}
             onSelect={this.onSelect.bind(this)}
             onChange={this.onChange.bind(this)}
             menuStyle={menuStyle}

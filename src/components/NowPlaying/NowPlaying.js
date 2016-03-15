@@ -12,6 +12,8 @@ import s from './NowPlaying.scss';
 import {play, pause, nextSong, prevSong, setMaster, reportPlayerState, changeVolume, seek, togglePlayer}
   from '../../actions/PlayerActionCreators';
 import PlayerStore from '../../stores/PlayerStore';
+import {SongTypes} from '../../models/Song';
+import {auth} from '../../config';
 
 class NowPlaying extends Component {
   constructor(props) {
@@ -101,19 +103,18 @@ class NowPlaying extends Component {
   }, 3000);
 
   render() {
-
     let playerState = this.props.playerState;
     let song = PlayerStore.getSong(PlayerStore.nowPlaying());
     let displayMasterBtn = !this.props.hasMaster || this.props.isMaster;
-
     return (
       <div className={s.root}>
         <div className={s.content}>
             {(this.props.isMaster || this.props.player) ?
               <Player ref="player"
-                      url={`https://www.youtube.com/watch?v=${this.props.song}`}
+                      url={song.get('url')}
                       playing={playerState.get('playing')}
                       volume={this.state.volume}
+                      soundcloudConfig={{clientId: auth.soundcloud.key}}
                       onEnded={this.handleEnd.bind(this)}
                       onProgress={this.handleProgress.bind(this)}
                   className={s.player} /> : ''

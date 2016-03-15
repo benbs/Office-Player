@@ -12,8 +12,8 @@ export function selectSong(songId) {
   })
 }
 
-export function addSong(yId) {
-  Socket.emit("addSong", yId);
+export function addSong(yId, songType) {
+  Socket.emit("addSong", yId, songType);
 }
 
 export function addPlaylist(pId) {

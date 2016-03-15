@@ -49,15 +49,15 @@ function loadSong(data) {
 
 function loadPlaylist(data) {
   let newPlaylist = fromJS(data);
-  if (typeof newPlaylist.get(0) === 'string') {
-    playlist = newPlaylist;
-  }
-  else {
+  if (typeof newPlaylist.get(0) === 'object') {
     playlist = new List();
     newPlaylist.forEach((song) => {
       playlist = playlist.push(song.get('id'));
       saveSongToCache(song.get('id'), song);
     });
+  }
+  else {
+    playlist = newPlaylist;
   }
 }
 
