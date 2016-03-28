@@ -109,7 +109,7 @@ class NowPlaying extends Component {
     return (
       <div className={s.root}>
         <div className={s.content}>
-            {(this.props.isMaster || this.props.player) ?
+            {((this.props.isMaster || this.props.player) && song) ?
               <Player ref="player"
                       url={song.get('url')}
                       playing={playerState.get('playing')}
