@@ -7,10 +7,10 @@ import {canUseDOM} from 'fbjs/lib/ExecutionEnvironment';
 import cx from 'classnames';
 import _ from 'lodash';
 import {fromJS, List} from 'immutable';
+import qs from 'qs';
 
 import fetch from '../../core/fetch';
 import {auth} from '../../config';
-import {objectToQuerystring} from '../../core/Utils';
 import {parseSong, SongTypes} from '../../models/Song';
 import * as Soundcloud from '../../api/SoundcloudAPI';
 
@@ -36,7 +36,7 @@ class Search extends Component {
   }
   async getYoutubeResults(q) {
     let baseURL = "https://www.googleapis.com/youtube/v3/";
-    let url = baseURL + 'search?' + objectToQuerystring({
+    let url = baseURL + 'search?' + qs.stringifgify({
         part: 'snippet',
         key: auth.youtube.key,
         type: 'video,playlist',
@@ -46,7 +46,7 @@ class Search extends Component {
     let response = await fetch(url);
     response = await response.json();
     let ids = response.items.map(item => item.id.videoId).join(',');
-    url = baseURL + 'videos?' + objectToQuerystring({
+    url = baseURL + 'videos?' + qs.strin({
         part: 'snippet,contentDetails',
         id: ids,
         key: auth.youtube.key,

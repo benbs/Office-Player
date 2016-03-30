@@ -2,15 +2,15 @@
  * Created by Ben on 3/14/2016.
  */
 import {fromJS} from 'immutable';
+import qs from 'qs';
 
 import {auth} from '../config';
 import {SongTypes} from '../models/Song';
-import {objectToQuerystring} from '../core/Utils';
 import fetch from '../core/fetch';
 
 export async function getSong(songId) {
   const baseUrl = 'http://api.soundcloud.com';
-  let args = objectToQuerystring({
+  let args = qs.stringify({
     client_id: auth.soundcloud.key,
     id: songId
   });
@@ -22,7 +22,7 @@ export async function getSong(songId) {
 
 export async function findSongs(q) {
   const baseUrl = 'http://api.soundcloud.com';
-  let args = objectToQuerystring({
+  let args = qs.stringify({
     client_id: auth.soundcloud.key,
     q: q
   });

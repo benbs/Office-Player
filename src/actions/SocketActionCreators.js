@@ -5,6 +5,10 @@ import Dispatcher from '../core/Dispatcher';
 import ActionTypes from '../constants/ActionTypes';
 import Socket from '../api/Socket';
 
+Socket.on("disconnect", function() {
+  window.location.reload();
+});
+
 Socket.on("addSong", function(song) {
   Dispatcher.dispatch({
     type: ActionTypes.LOAD_SONG,
