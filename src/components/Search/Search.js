@@ -46,7 +46,7 @@ class Search extends Component {
     let response = await fetch(url);
     response = await response.json();
     let ids = response.items.map(item => item.id.videoId).join(',');
-    url = baseURL + 'videos?' + qs.strin({
+    url = baseURL + 'videos?' + qs.stringify({
         part: 'snippet,contentDetails',
         id: ids,
         key: auth.youtube.key,
