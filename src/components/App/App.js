@@ -7,21 +7,25 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
+// region imports
 import React, { Component, PropTypes } from 'react';
 import emptyFunction from 'fbjs/lib/emptyFunction';
+import { canUseDOM } from 'fbjs/lib/ExecutionEnvironment';
 import cx from 'classnames';
+import qs from 'qs';
 
 import s from './App.scss';
 
 import PlayerStore from '../../stores/PlayerStore';
 import Socket from '../../api/Socket';
-import {getPlaylist, nowPlaying, getPlayerState, hasMaster} from '../../actions/PlayerActionCreators';
+import {getPlaylist, nowPlaying, getPlayerState, hasMaster, setMaster} from '../../actions/PlayerActionCreators';
 
 import Header from '../Header';
 import NowPlaying from '../NowPlaying';
 import Playlist from '../Playlist';
 import PlayerInfo from '../PlayerInfo';
 import Search from '../Search';
+// endregion
 
 function getStateFromStores() {
   return {
@@ -80,6 +84,13 @@ class App extends Component {
     PlayerStore.addChangeListener(this.onStoreChange.bind(this));
     Socket.init();
     require('../../actions/SocketActionCreators');
+    if (canUseDOM) {
+      let querystring = window.location.search && window.location.search.substring(1);
+      let query = qs.parse(querystring);
+      if (query.master === 'true') {
+        setMaster();
+      }
+    }
     getPlaylist(true);
     nowPlaying();
     getPlayerState();
@@ -107,8 +118,8 @@ class App extends Component {
                       hasMaster={this.state.hasMaster}
                       player = {this.state.player}
                       playerState={this.state.playerState} />
-          <div className={cx(s.mainContent, {[s.withPlayer]: this.state.player})}>
-            <Search />
+          <div className={cx(s.mainContent, {[s.withPlayer]: this.state.player || this.state.isMaster})}>
+            <Search isMaster={this.state.isMaster} isPlayer={this.state.player} />
             <Playlist playlist={this.state.playlist} />
             <PlayerInfo song={this.state.nowPlaying} />
           </div>

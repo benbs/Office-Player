@@ -9,6 +9,39 @@ import s from './PlaylistItem.scss'
 
 import PlayerStore from '../../stores/PlayerStore';
 import {selectSong, changeSong, deleteSong} from '../../actions/PlayerActionCreators';
+import { findDOMNode } from 'react-dom';
+import { DragSource, DropTarget } from 'react-dnd';
+
+const cardSource = {
+  beginDrag(props) {
+    return {
+      id: props.id,
+      index: props.index
+    };
+  }
+};
+
+const cardTarget = {
+  hover(props, monitor, component) {
+    const dragIndex = monitor.getItem().index;
+    const hoverIndex = props.index;
+    if (dragIndex === hoverIndex)  {
+      return;
+    }
+    const hoverBoundingRect = findDOMNode(component).getBoundingClientRect();
+    const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+    const clientOffset = monitor.getClientOffset();
+    const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+    if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+      return;
+    }
+    if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+      return;
+    }
+    props.moveCard(dragIndex, hoverIndex);
+    monitor.getItem().index = hoverIndex;
+  }
+};
 
 class PlaylistItem extends Component {
   constructor(props) {
@@ -27,38 +60,29 @@ class PlaylistItem extends Component {
     changeSong(this.props.item.id);
   }
 
-  renderDragHandle() {
-    let dragContent = (
-      <div className={s.dragHandle}>
-        <i className="fa fa-ellipsis-v" />
-        <i className="fa fa-ellipsis-v" />
-      </div>
-    );
-    return this.props.dragHandle(dragContent);
-  }
-
   render() {
-    const {item, itemSelected} = this.props;
-    const dragged = itemSelected !== 0;
-    const selected = item.id === PlayerStore.getSelectedSongId();
-    const isPlaying = item.id === PlayerStore.nowPlaying();
+    const {item, isDragging, connectDragSource, connectDropTarget} = this.props;
+    const selected = item.get('id') === PlayerStore.getSelectedSongId();
+    const isPlaying = item.get('id') === PlayerStore.nowPlaying();
 
-    let duration = item.duration
-      .replace("PT", "").replace("S", "").replace("H", ":").replace("M", ":").split(":");
-    duration.forEach(function(pt, i) { duration[i] = (pt.length == 1)? "0"+pt : pt });
-    duration = duration.join(":");
-
-    return (
-      <div className={cx(s.root, {dragged, [s.selected]: selected, [s.nowPlaying]: isPlaying})}
+    return connectDragSource(connectDropTarget(
+      <div className={cx(s.root, {dragged: isDragging, [s.selected]: selected, [s.nowPlaying]: isPlaying})}
            onClick={this.handleClick.bind(this)} onDoubleClick={this.handleDoubleClick.bind(this)}>
-        {this.renderDragHandle()}
-        <i className={cx("fa fa-play", s.songButton)} onClick={() => changeSong(item.id)} />
-        <i className={cx("fa fa-trash", s.songButton)} onClick={() => deleteSong(item.id)} />
-        <span className={s.songTitle}>{ item.title }</span>
-        <span className={s.songDuration}>{duration}</span>
+        <i className={cx("fa fa-play", s.songButton)} onClick={() => changeSong(item.get('id'))} />
+        <i className={cx("fa fa-trash", s.songButton)} onClick={() => deleteSong(item.get('id'))} />
+        <span className={s.songTitle}>{ item.get('title') }</span>
+        <span className={s.songDuration}>{item.get('duration')}</span>
       </div>
-    );
+    ));
   }
 }
 
-export default withStyles(PlaylistItem, s);
+
+export default withStyles(
+  DropTarget('card', cardTarget, connect => ({
+    connectDropTarget: connect.dropTarget()
+  }))(DragSource('card', cardSource, (connect, monitor) => ({
+    connectDragSource: connect.dragSource(),
+    isDragging: monitor.isDragging()
+  }))(PlaylistItem))
+  , s);

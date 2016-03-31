@@ -1,8 +1,10 @@
 .root {
   height: 30px;
   line-height: 30px;
-  cursor: default;
   overflow: hidden;
+  position: relative;
+  padding: 0 10px;
+  cursor: grab;
 }
 
 .songTitle {
@@ -11,7 +13,7 @@
 
 .songDuration {
   position: absolute;
-  right: 5px;
+  right: 10px;
 }
 
 .selected {

@@ -33,6 +33,12 @@ export const auth = {
 
   youtube: {
     key: 'AIzaSyDpf1zpnEIu2otoq_jERitTBXn-O3yJ9bg'
+  },
+
+  soundcloud: {
+    key: 'd72413ab5801eefae147858ff355b901'
   }
 
 };
+
+export const DEFAULT_SOUNDCLOUD_THUMBNAIL = 'http://www.brandsoftheworld.com/sites/default/files/styles/logo-thumbnail/public/032013/soundcloud_logo_0.png?itok=xO8Oaxwr';

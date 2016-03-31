@@ -35,10 +35,36 @@
   padding: 2px 6px;
   cursor: default;
   text-align: initial;
+  z-index: 10;
+
+  .thumbnailWrapper {
+    width: 60px;
+    height: 45px;
+    display: inline-block;
+
+    img {
+      max-width: 60px;
+      max-height: 45px;
+      display: block;
+      margin: 0 auto;
+    }
+  }
 },
 
 .songTitle {
   padding: 0 15px;
+  vertical-align: top;
+  position: absolute;
+  left: 60px;
+  right: 0;
+
+  :global(.fa-youtube) {
+    color: #b31217;
+  }
+
+  :global(.fa-soundcloud) {
+    color: #FF7000;
+  }
 }
 
 .highlightedItem {

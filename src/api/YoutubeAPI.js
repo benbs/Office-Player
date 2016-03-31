@@ -2,9 +2,10 @@
  * Created by Ben on 2/20/2016.
  */
 import {youtube} from 'googleapis';
-import {fromJS} from 'immutable';
+import {fromJS, List} from 'immutable';
 
-import {auth} from '../config'
+import {auth} from '../config';
+import {SongTypes} from '../models/Song';
 
 const youtubeInstance = youtube('v3');
 
@@ -17,9 +18,18 @@ export function getSong(songId) {
       auth: auth.youtube.key
     };
 
-    youtubeInstance.videos.list(args, (err, response) => {
+    youtubeInstance.videos.list(args, async (err, response) => {
       if (!err && response.items.length) {
-        resolve(fromJS(response.items[0]));
+        let songData = fromJS(response.items[0]);
+        songData = songData.set('relatedSongs', new List());
+        try {
+          songData = songData.set('relatedSongs', await getRelatedSongs(songId));
+        }
+        catch (err) {
+          console.log(`couldnt get related songs - ${err}`);
+        }
+        songData = songData.set('type', SongTypes.YOUTUBE_SONG);
+        resolve(songData);
       }
       else {
         reject(err || 'no song found!');

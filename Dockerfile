@@ -1,8 +1,13 @@
-FROM node:4-onbuild
-MAINTAINER benbs93@gmail.com
+FROM node:latest
 
-ADD "http://github.com/benbs/Office-Player" ~/Office-Player
+MAINTAINER Ben Ben Sasson
+
+ADD package.json package.json
 RUN npm install
-RUN npm build -- --release
+
+ADD . .
+RUN npm run build -- --release
+
+EXPOSE 8889
+
 CMD node build/server.js
-EXPOSE 8999

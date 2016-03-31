@@ -5,10 +5,12 @@
   width: 100%;
   //max-width: 500px;
   //min-height: 100px;
-  height: 100%;
+  height: 82%;
+  overflow: auto;
   vertical-align: top;
 
   &>div>div {
     height: 30px !important;
+    z-index: 0 !important;
   }
 }
