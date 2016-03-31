@@ -36,7 +36,7 @@ class Search extends Component {
   }
   async getYoutubeResults(q) {
     let baseURL = "https://www.googleapis.com/youtube/v3/";
-    let url = baseURL + 'search?' + qs.stringifgify({
+    let url = baseURL + 'search?' + qs.stringify({
         part: 'snippet',
         key: auth.youtube.key,
         type: 'video,playlist',
